@@ -14,6 +14,4 @@ An application that allows users to view and order food from different resturant
 
 -   [Javascript](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 -   [Express](https://expressjs.com/)
--   [HTML5](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5)
--   [Bootstrap 4](https://getbootstrap.com/docs/4.0/getting-started/introduction/)
--   [CSS3](https://www.w3.org/TR/CSS/#css)
+
