@@ -12,28 +12,21 @@ const nextId = require("../utils/nextId");
 
 
 // CREATE
-function create(req, res) {
-  const { data: { id, name, despcription, price, image_url } } = req.body;
-  
-  const newId = nextId();
-  const newName = req.body.data.name;
-  const newDescription = req.body.data.description;
-  const newPrice = req.body.data.price;
-  const newImageUrl = req.body.data.image_url;
-  
-  const newDish = {
-    id: newId,
-    name: newName,
-    description: newDescription,
-    price: newPrice,
-    image_url: newImageUrl
-  };
-  dishes.push(newDish);
-  res.status(201).json({ data: newDish });
-  //console.log(urls);
+function create(req, res){
+    const {data: {name, description, price, image_url} = {}} = req.body;
+    const newId = new nextId();
+    const newDish = {
+        id: newId,
+        name: res.locals.name, 
+        description: res.locals.description,
+        price: res.locals.price, 
+        image_url: image_url
+    }
+    dishes.push(newDish);
+    res.status(201).json({data: newDish})
 }
 
-
+// DOES DATA ID MATCH DISH ID
 function dataIdMatchesDishId(req, res, next) {
   const { data: { id } = {} } = req.body;
   //const id = req.body.data.id;
@@ -49,11 +42,11 @@ function dataIdMatchesDishId(req, res, next) {
 
 
 
-// DOES EXIST VALIDATION
+// DOES DISH EXIST - VALIDATION
 function dishExists(req, res, next) {
   const  dishId  = req.params.dishId;
-  const foundDish = dishes.filter((dish) => dish.id === dishId);
-  if (foundDish.length > 0) {
+  const foundDish = dishes.find((dish) => dish.id === dishId);
+  if (foundDish) {
     res.locals.dish = foundDish;
     next();
   } else {
@@ -62,11 +55,23 @@ function dishExists(req, res, next) {
 }
 
 // READ
-function read(req, res) {
-   const foundDish = res.locals.dish;
-  if (foundDish) {
-    res.json({ data: foundDish[0] });
-  }
+function read(req, res, next){
+    res.json({
+        data: res.locals.dish
+    })
+}
+
+// DOES NAME EXIST
+function nameExists(req, res, next) {
+    const {data: {name} = {}} = req.body;
+    if (name){
+      res.locals.name = name;
+        return next()
+    }
+    next({
+        status: 400,
+        message: "Dish must include a name."
+    })
 }
 
 // IS NAME VALID - VALIDATION
@@ -82,6 +87,19 @@ function isNameValid(req, res, next) {
   next();
 }
 
+// DOES DESCRIPTION EXISTS
+function descriptionExists(req, res, next){
+    const {data: {description} = {}} = req.body;
+    if (description){
+      res.locals.description = description;
+        return next()
+    }
+    next({
+        status: 400,
+        message: "Dish must include a description."
+    })
+}
+
 // IS DESCRIPTION VALID - VALIDATION
 function isDescriptionValid(req, res, next) {
   const { data: { description } = {} } = req.body;
@@ -94,6 +112,20 @@ function isDescriptionValid(req, res, next) {
     }
     next();
   }
+
+
+// DOES PRICE EXISTS
+function priceExists(req, res, next){
+    const {data: {price} = {}} = req.body;
+    if (price){
+      res.locals.price = price;
+        return next()
+    }
+    next({
+        status: 400,
+        message: "Dish must include a price."
+    })
+}
 
 // IS PRICE VALID - VALIDATION
 function isPriceValid(req, res, next) {
@@ -115,6 +147,22 @@ function isPriceValid(req, res, next) {
   }
 }
 
+
+//DOES IMAGEURL EXISTS
+function imageUrlExists(req, res, next){
+    const {data: {image_url} = {}} = req.body;
+    if(image_url){
+      res.locals.imageUrl = image_url;
+        return next();
+    }
+
+    next({
+        status: 400, 
+        message: "Dish must include a image_url."
+    })
+}
+
+
 // IS IMAGEURL VALID - VALIDATION
 function isImageUrlValid(req, res, next) {
   const { data: { image_url } = {} } = req.body;
@@ -129,17 +177,15 @@ function isImageUrlValid(req, res, next) {
 }
 
 // UPDATE
-function update(req, res) {
-  const dishId = req.params.dishId;
-  const foundDish = dishes.find((dish) => (dish.id === dishId));
-  const { data: { name, description, price, image_url } = {} } = req.body;
-  foundDish.name = name;
-  foundDish.description = description;
-  foundDish.price = price;
-  foundDish.image_url = image_url;
-  res.json({ data: foundDish });
-};
-
+function update(req, res){
+    const dish = res.locals.dish;
+    const{data: {name, description, price, image_url} = {}} = req.body;
+    dish.name = name;
+    dish.description = description;
+    dish.price = price;
+    dish.image_url = image_url;
+    res.json({data: dish})
+}
 
 
 // CANNOT DELETE DISHES
@@ -154,9 +200,13 @@ function update(req, res) {
 module.exports = {
   list,
   create: [
+    nameExists,
     isNameValid,
+    descriptionExists,
     isDescriptionValid,
+    priceExists,
     isPriceValid,
+    imageUrlExists,
     isImageUrlValid, 
     create
   ],
@@ -164,9 +214,13 @@ module.exports = {
   update: [
     dishExists,  
     dataIdMatchesDishId,
-    isNameValid, 
+    nameExists,
+    isNameValid,
+    descriptionExists,
     isDescriptionValid, 
+    priceExists,
     isPriceValid, 
+    imageUrlExists,
     isImageUrlValid, 
     update
   ],
